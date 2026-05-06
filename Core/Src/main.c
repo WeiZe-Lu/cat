@@ -23,7 +23,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "emotion.h"
+#include "animation.h"
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -33,7 +35,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define TASK_PERIOD_OLED_MX 100 // OLED动画更新周期，单位毫秒
+#define TASK_PERIOD_INFRARED_MX 20 // 红外传感器读取周期，单位毫秒
+#define TASK_PERIOD_MOTOR_MX 20 // 电机控制周期，单位毫秒
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,9 +48,12 @@
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
-
+SPI_HandleTypeDef hspi1;
 /* USER CODE BEGIN PV */
-
+OledTypedef oled;
+uint32_t last_infrared_time = 0;
+uint32_t last_animation_time = 0;
+uint32_t last_motor_time = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -54,6 +61,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -100,13 +108,38 @@ int main(void)
   HAL_GPIO_WritePin(Motor_Left_AIN2_GPIO_Port,Motor_Left_AIN2_Pin, GPIO_PIN_RESET);
   __HAL_TIM_SetCompare(&htim3,TIM_CHANNEL_1,0);
   /* USER CODE END 2 */
-  
+  OledInitTypeDef oled_init_config = {
+      .hspi = &hspi1,
+      .CS_port = OLED_CS_GPIO_Port,
+      .CS_pin = OLED_CS_Pin,
+      .DC_port = OLED_DC_GPIO_Port,
+      .DC_pin = OLED_DC_Pin,
+      .RST_port = OLED_RST_GPIO_Port,
+      .RST_pin = OLED_RST_Pin
+  };//我生成的文件用的是spi1，到时候应该直接生成spi2的文件就好
+  oled_init(&oled, &oled_init_config);
+
+  oled_clear_buffer(&oled);
+  oled_refresh(&oled);
   /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   while (1)
   {
+    
+    /* USER CODE BEGIN WHILE */
+    uint32_t now = HAL_GetTick();
+    if (now - last_infrared_time >= TASK_PERIOD_INFRARED_MX) {
+        last_infrared_time = now;
+        //INFRARED的对外接口
+    }
+    if (now - last_animation_time >= TASK_PERIOD_OLED_MX) {
+        last_animation_time = now;
+        animation_update(&oled);//推荐想按这种只留唯一接口的方式封装
+    }
+    if (now - last_motor_time >= TASK_PERIOD_MOTOR_MX) {
+        last_motor_time = now;
+        //MOTOR的对外接口
+    }
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
 
 
