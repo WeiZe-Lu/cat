@@ -4,9 +4,9 @@
 #include "Motor.h"
 #define Steering 20
 void LeftFront(){
-    Motor_back();
+    Motor_Back();
     Motor_TurnRight(Steering);
-    Motor_back();
+    Motor_Back();
     Motor_TurnLeft(Steering);
 
     
@@ -26,13 +26,13 @@ void RightFront(){
     
 }
 
-void RightReap()[
+void RightReap(){
     Motor_Back();
     Motor_TurnLeft(Steering);
     Motor_Back();
-    Motor_TurnRight(Steering);
+    Motor_TurnLeft(Steering);
     
-]
+}
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
     switch (GPIO_Pin) {

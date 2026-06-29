@@ -22,7 +22,6 @@ endif()
 set(CMAKE_PROJECT_NAME Cat)
 
 # Enable compile command to ease indexing with e.g. clangd
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 # Core project settings
 project(${CMAKE_PROJECT_NAME})
@@ -37,9 +36,22 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
+
+set(VL53L0X_SRC_DIR ${PROJECT_SOURCE_DIR}/VL53L0X_API)
+set(VL53L0X_PLATFORM_DIR ${PROJECT_SOURCE_DIR}/VL53L0X_Platform)
+set(HARDWARE_DIR ${PROJECT_SOURCE_DIR}/Core/hardware)
+
+file(GLOB VL53L0X_API_SRCS "${VL53L0X_SRC_DIR}/*.c")
+
+file(GLOB VL53L0X_PLATFORM_SRCS "${VL53L0X_PLATFORM_DIR}/*.c")
+
+# file(GLOB HARDWARE_SRCS "${HARDWARE_DIR}/*.c")
+
+
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
+   
 )
 
 # Add sources to executable
@@ -47,12 +59,19 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 
 
     # Add user sources here
+    ${VL53L0X_API_SRCS}
+    ${VL53L0X_PLATFORM_SRCS}
+    ${HARDWARE_DIR}/OLED.c
+
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
     # Add user defined include paths
+    ${VL53L0X_SRC_DIR}
+    ${VL53L0X_PLATFORM_DIR}
+    ${HARDWARE_DIR}
 )
 
 # Add project symbols (macros)

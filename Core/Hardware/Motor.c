@@ -24,7 +24,7 @@ int Is_Front(char dir){
     }
 }
 
-int Is_Back(){
+int Is_Back(char dir){
     if (dir == 'R'){
         return (HAL_GPIO_ReadPin(Motor_Right_BIN1_GPIO_Port, Motor_Right_BIN2_Pin) == GPIO_PIN_RESET 
         && HAL_GPIO_ReadPin(Motor_Right_BIN2_GPIO_Port, Motor_Right_BIN2_Pin) == GPIO_PIN_SET);
@@ -35,7 +35,7 @@ int Is_Back(){
     }
 }
 
-int Is_Stop(){
+int Is_Stop(char dir){
      if (dir == 'R'){
         return (HAL_GPIO_ReadPin(Motor_Right_BIN1_GPIO_Port, Motor_Right_BIN2_Pin) 
         == HAL_GPIO_ReadPin(Motor_Right_BIN2_GPIO_Port, Motor_Right_BIN2_Pin));
@@ -70,7 +70,7 @@ void Motor_Forward(){
     HAL_GPIO_WritePin(Motor_Right_BIN2_GPIO_Port, Motor_Right_BIN2_Pin, GPIO_PIN_RESET);
 }
 
-void Motor_TurnLeft(int Steering){
+void Motor_TurnLeft(int Steering_Angle){
 
     HAL_GPIO_WritePin(Motor_Left_AIN1_GPIO_Port, Motor_Left_AIN1_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(Motor_Left_AIN2_GPIO_Port, Motor_Left_AIN2_Pin, GPIO_PIN_SET);
@@ -79,7 +79,7 @@ void Motor_TurnLeft(int Steering){
 
 }
 
-void Motor_TurnRight(int Steering){
+void Motor_TurnRight(int Steering_Angle){
    
     HAL_GPIO_WritePin(Motor_Right_BIN1_GPIO_Port, Motor_Right_BIN1_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(Motor_Right_BIN2_GPIO_Port, Motor_Right_BIN2_Pin, GPIO_PIN_SET);
