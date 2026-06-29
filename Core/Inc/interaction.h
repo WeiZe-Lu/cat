@@ -30,4 +30,11 @@ void Interaction_Init(UART_HandleTypeDef *huart);
  */
 void Interaction_Update(void);
 
+/**
+ * @brief  查询当前解析出的手势动作 (对外接口)qq
+ * @param  None
+ * @retval GestureActionDef 当前解析出的手势动作(没动作也是一种动作哦)
+ * @note   获取当前解析出的手势动作
+ */
+GestureActionDef Interaction_GetCurrentAction(void);
 #endif 

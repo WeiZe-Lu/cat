@@ -1,17 +1,15 @@
 //回调函数（状态机接串口） 根据当前情绪和接收到的收手势动作来切换情绪
-//待解决问题：视觉和听觉输入优先级和冲突问题（个人建议视觉优先因为视觉理论上更明确也关键，且用户需要付出额外成本（接线），指令一般也更关键和少）
+//待解决问题：视觉和听觉输入优先级和冲突问题
 
 #include "interaction.h"
-
-extern OledCurrentStateTypedef current_state;
+#include "emotion.h"
+#include "animation.h"
 
 // 模块内部私有变量
 static UART_HandleTypeDef *interact_uart = NULL;
 static uint8_t rx_byte;          
 static uint8_t rx_state = 0;     
 static uint8_t current_cmd = 0;  
-static uint8_t target_emotion = 0; // 目标表情
-static uint8_t current_emotion = 0; // 当前表情
 static GestureActionDef current_action = ACTION_NONE;
 
 // 初始化通信
@@ -66,39 +64,33 @@ void Interaction_Update(void)
         // 逻辑：醒的话睡，睡的话醒
         // ==========================================
         case ACTION_WAVE:
-            if (current_state.current_emotion == Emotion_Sleep) {
-                current_state.current_emotion = Emotion_Normal; // 睡醒变正常
+            // 使用 get_pet_emotion() 获取当前目标状态来做判断
+            if (get_pet_emotion() == Emotion_Sleep) {
+                set_pet_emotion(Emotion_Normal); // 睡醒变正常
             } else {
-                current_state.current_emotion = Emotion_Sleep;  // 醒着去睡觉
+                set_pet_emotion(Emotion_Sleep);  // 醒着去睡觉
             }
-            current_state.frame_count = 0; 
             break;
 
         // ==========================================
-        // 动作：出拳 (PUNCH)
-        // 逻辑：单一表情 -> 切换为生气
+        // 动作：出拳 (PUNCH) -> 切换为生气
         // ==========================================
         case ACTION_PUNCH:
-            current_state.current_emotion = Emotion_Angry;
-            current_state.frame_count = 0;
+            set_pet_emotion(Emotion_Angry);
             break;
 
         // ==========================================
-        // 动作：指着 (POINT)
-        // 逻辑：单一表情 -> 切换为好奇
+        // 动作：指着 (POINT) -> 切换为好奇
         // ==========================================
         case ACTION_POINT:
-            current_state.current_emotion = Emotion_Curious;
-            current_state.frame_count = 0;
+            set_pet_emotion(Emotion_Curious);
             break;
 
         // ==========================================
-        // 动作：比心 (HEART)
-        // 逻辑：单一表情 -> 切换为害羞
+        // 动作：比心 (HEART) -> 切换为害羞
         // ==========================================
         case ACTION_HEART:
-            current_state.current_emotion = Emotion_Shy;
-            current_state.frame_count = 0;
+            set_pet_emotion(Emotion_Shy);
             break;
 
         // 其他未知动作不做处理
@@ -109,3 +101,8 @@ void Interaction_Update(void)
     // 逻辑处理完毕，清空标志，等待下一次串口下发动作
     current_action = ACTION_NONE;
 }
+
+GestureActionDef Interaction_GetCurrentAction(void) {
+    return current_action;
+}
+·
