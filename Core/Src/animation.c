@@ -24,11 +24,21 @@ const AnimationTypedef emotion_animation_table[] = {
 };
 
 
-OledCurrentStateTypedef current_state = {
+
+static OledCurrentStateTypedef current_state = {
     .current_emotion = Emotion_Normal,
     .previous_emotion = Emotion_Normal,
     .frame_count = 0
 };
+
+void set_pet_emotion(EmotionTypeDef new_emo) {
+    current_state.current_emotion = new_emo;
+}
+
+
+EmotionTypeDef get_pet_emotion(void) {
+    return current_state.current_emotion;
+}
 
 void animation_update(OledTypedef *oled) {
     if(current_state.current_emotion != current_state.previous_emotion && current_state.frame_count >= emotion_animation_table[current_state.previous_emotion].frame_count) {
