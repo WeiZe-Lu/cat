@@ -66,9 +66,9 @@ void Interaction_Update(void)
         case ACTION_WAVE:
             // 使用 get_pet_emotion() 获取当前目标状态来做判断
             if (get_pet_emotion() == Emotion_Sleep) {
-                set_pet_emotion(Emotion_Normal); // 睡醒变正常
+                // set_pet_emotion(Emotion_Normal); // 睡醒变正常
             } else {
-                set_pet_emotion(Emotion_Sleep);  // 醒着去睡觉
+                // set_pet_emotion(Emotion_Sleep);  // 醒着去睡觉
             }
             break;
 
