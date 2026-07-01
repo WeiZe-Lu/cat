@@ -37,4 +37,11 @@ void Interaction_Update(void);
  * @note   获取当前解析出的手势动作
  */
 GestureActionDef Interaction_GetCurrentAction(void);
+
+/**
+ * @brief  查询当前解析出的 X 轴偏移量 (对外接口)
+ * @param  None
+ * @retval int8_t 当前解析出的 X 轴偏移量 (左正右负)
+ */
+int8_t Interaction_GetXOffset(void);
 #endif 

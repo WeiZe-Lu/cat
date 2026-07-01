@@ -1,5 +1,4 @@
-//回调函数（状态机接串口） 根据当前情绪和接收到的收手势动作来切换情绪
-//待解决问题：视觉和听觉输入优先级和冲突问题
+// 回调函数（状态机接串口） 根据当前情绪和接收到的手势动作来切换情绪
 
 #include "interaction.h"
 #include "emotion.h"
@@ -9,8 +8,14 @@
 static UART_HandleTypeDef *interact_uart = NULL;
 static uint8_t rx_byte;          
 static uint8_t rx_state = 0;     
-static uint8_t current_cmd = 0;  
-static GestureActionDef current_action = ACTION_NONE;
+
+// 引入临时缓冲变量，避免帧错位或不完整导致运动和动作误触发
+static uint8_t temp_cmd = 0;  
+static int8_t  temp_x_offset = 0; 
+
+// 供各个模块读取的真实有效数据
+static GestureActionDef current_action = GestureAction_None;
+static int8_t current_x_offset = 0; 
 
 // 初始化通信
 void Interaction_Init(UART_HandleTypeDef *huart)
@@ -21,26 +26,36 @@ void Interaction_Init(UART_HandleTypeDef *huart)
     }
 }
 
-// 串口接收中断回调：状态机解析，只记录事件不处理逻辑
+// 串口接收中断回调：4字节状态机解析，只记录事件不处理逻辑
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart == interact_uart && interact_uart != NULL)
     {
         switch (rx_state)
         {
-            case 0:
+            case 0: // 匹配帧头 0xAA
                 if (rx_byte == 0xAA) rx_state = 1;
                 break;
-            case 1:
-                current_cmd = rx_byte;
+                
+            case 1: // 接收动作指令 (先存入临时变量)
+                temp_cmd = rx_byte;
                 rx_state = 2;
                 break;
-            case 2:
-                if (rx_byte == 0xFF) {
-                    current_action = (GestureActionDef)current_cmd;
-                }
-                rx_state = 0;
+                
+            case 2: // 接收 X轴偏移量 (强制转换为有符号整型 int8_t 存入临时变量)
+                temp_x_offset = (int8_t)rx_byte;
+                rx_state = 3;
                 break;
+                
+            case 3: // 匹配帧尾 0xFF
+                if (rx_byte == 0xFF) {
+                    // 核心校验通过，同步数据给全局变量
+                    current_action = (GestureActionDef)temp_cmd;
+                    current_x_offset = temp_x_offset;
+                }
+                rx_state = 0; // 状态归零，准备接收下一帧
+                break;
+                
             default:
                 rx_state = 0;
                 break;
@@ -49,9 +64,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
 }
 
-// 表情切换逻辑
-// interaction.c (省略了头文件和中断接收部分，只看核心更新函数)
-
+// 表情切换逻辑 (保持原本逻辑完全不变)
 void interaction_update(void) {
     // 如果没有接收到任何视觉新动作，直接退出
     if (current_action == GestureAction_None) {
@@ -106,4 +119,20 @@ void interaction_update(void) {
 
     // 清空标志，等待下一次动作
     current_action = GestureAction_None;
+}
+
+/**
+ * @brief  查询当前解析出的手势动作 (对外接口)
+ */
+GestureActionDef Interaction_GetCurrentAction(void) {
+    return current_action;
+}
+
+/**
+ * @brief  查询当前解析出的 X 轴偏移量 (新增对外接口)
+ * @param  None
+ * @retval int8_t 偏移量数值 (-100 到 100，左正右负)
+ */
+int8_t Interaction_GetXOffset(void) {
+    return current_x_offset;
 }
